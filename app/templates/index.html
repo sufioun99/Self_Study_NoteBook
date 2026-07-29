@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Notebook</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="workspace-switcher">
+      <div class="workspace-avatar">S</div>
+      <div>
+        <p class="workspace-label">Workspace</p>
+        <h1>Study Notebook</h1>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <button class="sidebar-link active" data-view="home">Home</button>
+      <button class="sidebar-link" data-view="capture">New note</button>
+      <button class="sidebar-link" data-view="library">Library</button>
+      <button class="sidebar-link" data-view="search">Search</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Quick search</div>
+      <input type="text" id="sidebar-search" class="sidebar-search" placeholder="Search materials, tags, code...">
+      <div id="sidebar-recent" class="sidebar-list"></div>
+    </div>
+
+    <div class="sidebar-section sidebar-footer">
+      <p>Versioned notes, code snippets, and linked study material in one place.</p>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Personal study system</p>
+        <h2 id="page-title">Home</h2>
+      </div>
+      <div class="topbar-actions">
+        <button class="ghost-button" id="go-home">Today</button>
+        <button class="primary-button" id="open-capture">New page</button>
+      </div>
+    </header>
+
+    <section id="view-home" class="view active">
+      <div class="hero-card">
+        <div>
+          <p class="hero-kicker">Capture fast. Find later.</p>
+          <h3>Build a living notebook that keeps code, notes, and references connected.</h3>
+          <p class="hero-copy">A Notion-like workspace for personal study, with versioned snippets, searchable materials, and linked topics.</p>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <span class="stat-label">Focus</span>
+            <strong>Study materials</strong>
+          </div>
+          <div>
+            <span class="stat-label">Model</span>
+            <strong>Versioned content</strong>
+          </div>
+          <div>
+            <span class="stat-label">Search</span>
+            <strong>Recent + indexed</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <h4>Recent materials</h4>
+            <button class="text-button" data-view="library">Open library</button>
+          </div>
+          <div id="recent-cards" class="card-stack"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <h4>Quick capture</h4>
+            <button class="text-button" data-view="capture">Add material</button>
+          </div>
+          <form id="capture-form" class="capture-form compact">
+            <input type="text" id="cap-title" required placeholder="Untitled study note">
+            <div class="inline-fields">
+              <select id="cap-type">
+                <option value="note">Note</option>
+                <option value="snippet">Code Snippet</option>
+                <option value="reference">Reference</option>
+                <option value="image">Image</option>
+              </select>
+              <input type="text" id="cap-language" placeholder="Language">
+            </div>
+            <input type="text" id="cap-topic" placeholder="Topic summary">
+            <textarea id="cap-content" rows="7" placeholder="Write your note, code, or reference here..."></textarea>
+            <input type="text" id="cap-tags" placeholder="Tags, comma separated">
+            <input type="text" id="cap-change-note" placeholder="Change note">
+            <button type="submit" class="primary-button full-width">Save material</button>
+          </form>
+          <div id="capture-result" class="status hidden"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-capture" class="view">
+      <div class="document-card">
+        <div class="document-header">
+          <div>
+            <p class="eyebrow">New page</p>
+            <h3>Capture material</h3>
+          </div>
+          <button class="ghost-button" id="back-from-capture">Back</button>
+        </div>
+        <form id="capture-form-full" class="capture-form">
+          <input type="text" id="cap-title-full" required placeholder="Untitled page">
+          <div class="inline-fields">
+            <select id="cap-type-full">
+              <option value="note">Note</option>
+              <option value="snippet">Code Snippet</option>
+              <option value="reference">Reference</option>
+              <option value="image">Image</option>
+            </select>
+            <input type="text" id="cap-language-full" placeholder="Language">
+          </div>
+          <input type="text" id="cap-topic-full" placeholder="Topic summary">
+          <textarea id="cap-content-full" rows="12" placeholder="Write your note, code, or reference here..."></textarea>
+          <input type="text" id="cap-tags-full" placeholder="Tags, comma separated">
+          <input type="text" id="cap-change-note-full" placeholder="Change note">
+          <button type="submit" class="primary-button">Save page</button>
+        </form>
+        <div id="capture-result-full" class="status hidden"></div>
+      </div>
+    </section>
+
+    <section id="view-library" class="view">
+      <div class="document-card">
+        <div class="document-header">
+          <div>
+            <p class="eyebrow">Database</p>
+            <h3>Library</h3>
+          </div>
+          <button class="ghost-button" id="refresh-library">Refresh</button>
+        </div>
+        <div id="browse-list" class="material-list"></div>
+      </div>
+    </section>
+
+    <section id="view-search" class="view">
+      <div class="document-card">
+        <div class="document-header">
+          <div>
+            <p class="eyebrow">Find anything</p>
+            <h3>Search</h3>
+          </div>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="Search notes, code, tags, and topics...">
+          <button id="search-btn" class="primary-button">Search</button>
+        </div>
+        <div id="search-suggestions" class="hidden suggestions"></div>
+        <div id="search-results" class="material-list"></div>
+      </div>
+    </section>
+
+    <section id="view-detail" class="view">
+      <div class="document-card">
+        <button id="back-btn" class="ghost-button back-button">← Back</button>
+        <div id="detail-content"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
