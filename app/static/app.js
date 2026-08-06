@@ -1,6 +1,21 @@
 // Study Notebook — Client-side SPA logic
 
 const API = '';
+const viewTitles = {
+  home: 'Home',
+  capture: 'Capture',
+  library: 'Library',
+  search: 'Search',
+  detail: 'Detail',
+};
+
+const browseState = {
+  type: 'all',
+  query: '',
+  sort: 'recent',
+  collection: null,
+};
+let browseMaterials = [];
 
 function $(sel) { return document.querySelector(sel); }
 function $$(sel) { return document.querySelectorAll(sel); }
@@ -10,6 +25,11 @@ function showView(viewName) {
   $$('.view').forEach(v => v.classList.remove('active'));
   const view = document.getElementById('view-' + viewName);
   if (view) view.classList.add('active');
+  const title = $('#page-title');
+  if (title) title.textContent = viewTitles[viewName] || 'Study Notebook';
+  $$('.sidebar-link').forEach(link => {
+    link.classList.toggle('active', link.dataset.view === viewName);
+  });
   if (viewName === 'browse' || viewName === 'library') loadBrowse();
   if (viewName === 'search') $('#search-input').focus();
   if (viewName === 'home') loadRecent();
@@ -158,25 +178,105 @@ async function loadSidebarRecent() {
 // Load browse list
 async function loadBrowse() {
   try {
-    const materials = await apiFetch('/materials/');
-    const list = $('#browse-list');
-    if (!list) return;
-    if (!materials.length) {
-      list.innerHTML = '<p>No materials yet. Start capturing!</p>';
-      return;
-    }
-    list.innerHTML = materials.map(m => `
-      <div class="material-card" onclick="loadDetail(${m.id})">
-        <h3>${esc(m.title)}</h3>
-        <div class="meta">${m.material_type} · ${m.updated_at || 'unknown'}</div>
-        ${m.topic_summary ? `<div class="meta">${esc(m.topic_summary)}</div>` : ''}
-      </div>
-    `).join('');
+    browseMaterials = await apiFetch('/materials/');
+    renderBrowse();
   } catch (err) {
     const list = $('#browse-list');
     if (list) list.innerHTML = `<p class="toast error">Error loading materials: ${esc(err.message)}</p>`;
   }
 }
+
+function inferCollection(material) {
+  const text = `${material.title || ''} ${material.topic_summary || ''}`.toLowerCase();
+  if (text.includes('function')) return 'functions';
+  if (text.includes('question') || text.includes('quiz')) return 'questions';
+  if (text.includes('setup') || text.includes('install') || text.includes('apex')) return 'setup';
+  return 'practice';
+}
+
+function renderBrowse() {
+  const list = $('#browse-list');
+  if (!list) return;
+  let materials = [...browseMaterials];
+  if (browseState.type !== 'all') {
+    materials = materials.filter(m => m.material_type === browseState.type);
+  }
+  if (browseState.query) {
+    const q = browseState.query.toLowerCase();
+    materials = materials.filter(m =>
+      `${m.title || ''} ${m.topic_summary || ''}`.toLowerCase().includes(q)
+    );
+  }
+  if (browseState.collection) {
+    materials = materials.filter(m => inferCollection(m) === browseState.collection);
+  }
+  if (browseState.sort === 'title') {
+    materials.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+  } else if (browseState.sort === 'oldest') {
+    materials.sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
+  } else {
+    materials.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
+  }
+  const status = $('#library-status');
+  if (status) {
+    const collectionLabel = browseState.collection ? ` in ${browseState.collection}` : '';
+    status.textContent = `${materials.length} item(s) shown${collectionLabel}`;
+  }
+
+  if (!materials.length) {
+    list.innerHTML = '<p>No materials match your current filters.</p>';
+    return;
+  }
+  list.innerHTML = materials.map(m => `
+    <div class="material-card" onclick="loadDetail(${m.id})">
+      <h3>${esc(m.title)}</h3>
+      <div class="meta">${m.material_type} · ${m.updated_at || 'unknown'}</div>
+      ${m.topic_summary ? `<div class="meta">${esc(m.topic_summary)}</div>` : ''}
+      <div class="tags"><span class="tag">${esc(inferCollection(m))}</span></div>
+    </div>
+  `).join('');
+}
+
+function setCollectionFilter(collection) {
+  browseState.collection = collection;
+  showView('library');
+  renderBrowse();
+}
+
+// Library controls
+$('#library-filter-input').addEventListener('input', e => {
+  browseState.query = e.target.value.trim();
+  renderBrowse();
+});
+$('#library-sort').addEventListener('change', e => {
+  browseState.sort = e.target.value;
+  renderBrowse();
+});
+$$('.type-filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    browseState.type = btn.dataset.type;
+    $$('.type-filter').forEach(el => el.classList.remove('active'));
+    btn.classList.add('active');
+    renderBrowse();
+  });
+});
+$$('.collection-card').forEach(btn => {
+  btn.addEventListener('click', () => setCollectionFilter(btn.dataset.collection));
+});
+
+// Shortcut: slash to search, n for new note
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea, select')) return;
+  if (e.key === '/') {
+    e.preventDefault();
+    showView('search');
+    $('#search-input').focus();
+  }
+  if (e.key.toLowerCase() === 'n') {
+    e.preventDefault();
+    showView('capture');
+  }
+});
 
 // Load detail view
 async function loadDetail(id) {
@@ -318,6 +418,7 @@ $('#go-home').addEventListener('click', () => showView('home'));
 $('#open-capture').addEventListener('click', () => showView('capture'));
 $('#refresh-library').addEventListener('click', () => loadBrowse());
 $('#back-from-capture').addEventListener('click', () => showView('home'));
+$('#back-btn').addEventListener('click', () => showView('library'));
 
 function esc(str) {
   if (!str) return '';
