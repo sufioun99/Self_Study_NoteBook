@@ -104,6 +104,31 @@
           <div id="capture-result" class="status hidden"></div>
         </article>
       </div>
+
+      <article class="panel collection-panel">
+        <div class="panel-header">
+          <h4>PL-SQL style collections</h4>
+          <span class="meta">Organize by learning track</span>
+        </div>
+        <div class="collection-grid">
+          <button class="collection-card" data-collection="functions">
+            <strong>Functions</strong>
+            <span>Function-focused notes and examples</span>
+          </button>
+          <button class="collection-card" data-collection="practice">
+            <strong>Practice codes</strong>
+            <span>Hands-on coding exercises</span>
+          </button>
+          <button class="collection-card" data-collection="questions">
+            <strong>Questions</strong>
+            <span>Revision and drill question sets</span>
+          </button>
+          <button class="collection-card" data-collection="setup">
+            <strong>Setup / APEX</strong>
+            <span>Environment setup and platform notes</span>
+          </button>
+        </div>
+      </article>
     </section>
 
     <section id="view-capture" class="view">
@@ -144,6 +169,24 @@
             <h3>Library</h3>
           </div>
           <button class="ghost-button" id="refresh-library">Refresh</button>
+        </div>
+        <div class="library-controls">
+          <input type="text" id="library-filter-input" placeholder="Filter by title, topic, or tags">
+          <div class="filter-row">
+            <select id="library-sort">
+              <option value="recent">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="title">Title A → Z</option>
+            </select>
+            <div class="type-filters">
+              <button class="type-filter active" data-type="all">All</button>
+              <button class="type-filter" data-type="note">Notes</button>
+              <button class="type-filter" data-type="snippet">Snippets</button>
+              <button class="type-filter" data-type="reference">References</button>
+              <button class="type-filter" data-type="image">Images</button>
+            </div>
+          </div>
+          <p id="library-status" class="meta"></p>
         </div>
         <div id="browse-list" class="material-list"></div>
       </div>
